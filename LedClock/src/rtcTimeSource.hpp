@@ -8,7 +8,7 @@
 
 class RtcTimeSource: public TimeSource {
     private:
-        
+        static char* _buffer;
 
     private:
         unsigned long _prevSyncTime;
@@ -17,6 +17,26 @@ class RtcTimeSource: public TimeSource {
 
     public:
         RtcTimeSource(): _rtc(Wire) {            
+        }
+
+        const char* toString() {
+            RtcDateTime rtcTime = _rtc.GetDateTime(); 
+            _currentTime = Time(rtcTime.Hour(), rtcTime.Minute(), rtcTime.Second());
+
+            sprintf(
+                _buffer,
+                "IsValid: %s, IsRunning: %s, RtcTime: %02d:%02d:%02d, InternalTime: %02d:%02d:%02d, TimeAge: %ld",
+                _rtc.IsDateTimeValid() ? "yes" : "no", 
+                _rtc.GetIsRunning() ? "yes" : "no", 
+                rtcTime.Hour(),
+                rtcTime.Minute(),
+                rtcTime.Second(),
+                _currentTime.getHours(),
+                _currentTime.getMinutes(),
+                _currentTime.getSeconds(),
+                millis() - _prevSyncTime);               
+
+            return _buffer;
         }
 
         virtual void init() {
@@ -43,7 +63,7 @@ class RtcTimeSource: public TimeSource {
     virtual void updateTime(int tickTime) {
          unsigned long currentMillis = millis();
 
-        if (_prevSyncTime == 0 || currentMillis - _prevSyncTime > Configuration::SyncInterval) {
+        if (_prevSyncTime == 0 || currentMillis - _prevSyncTime > Configuration::TimeSourceConfiguration::SyncInterval) {
             _prevSyncTime = currentMillis;
             Serial.println("Sync time with RTC");   
             RtcDateTime rtcTime = _rtc.GetDateTime(); 
@@ -62,3 +82,5 @@ class RtcTimeSource: public TimeSource {
         _currentTime.addHours(dHour);
     }
 };
+
+char* RtcTimeSource::_buffer = new char[255];

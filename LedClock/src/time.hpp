@@ -4,6 +4,9 @@
 
 class Time {
   private:
+    static char* _buffer;
+
+  private:
     double _millis;
 
   public:
@@ -39,4 +42,11 @@ class Time {
     void addHours(double h) {
         _millis += h * 1000 * 60 * 60;
     }
+
+    const char* toString() {
+        sprintf(_buffer, "%02d:%02d%02d.%d", getHours(), getMinutes(), getSeconds(), (int)_millis % 1000);
+        return _buffer;
+    }
 };
+
+char* Time::_buffer = new char[20];

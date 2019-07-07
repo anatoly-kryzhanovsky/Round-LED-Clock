@@ -7,40 +7,48 @@
 
 class ClockFace {
     private:
-        CRGB clockFace[Configuration::LedsCount];
+        static char* _buffer;
+
+
+    private:
+        CRGB _clockFace[Configuration::ClockFaceConfiguration::LedsCount];
 
     public:
         void init() {
             FastLED.delay(3000);
-            FastLED.addLeds<WS2812B, Configuration::LedDataPin, GRB>(clockFace, Configuration::LedsCount);  
+            FastLED.addLeds<WS2812B, Configuration::ClockFaceConfiguration::LedDataPin, GRB>(_clockFace, Configuration::ClockFaceConfiguration::LedsCount);  
+        }
+
+        const char* toString() {
+            return _buffer;                
         }
 
         void showTime(const Time& time) {
-            for (int i = 0; i < Configuration::LedsCount; i++) 
-            clockFace[i] = CRGB::Black;
+            for (int i = 0; i < Configuration::ClockFaceConfiguration::LedsCount; i++) 
+                _clockFace[i] = CRGB::Black;
  
             int second = getSecondPosition(time);
             int minute = getMinutePosition(time);
             int hour = getHourPosition(time);
 
-            clockFace[second] = Configuration::ColorSecond;
-            clockFace[minute] = Configuration::ColorMinute;  
-            clockFace[hour] = Configuration::ColorHour;  
+            _clockFace[second] = Configuration::ClockFaceConfiguration::ColorSecond;
+            _clockFace[minute] = Configuration::ClockFaceConfiguration::ColorMinute;  
+            _clockFace[hour] = Configuration::ClockFaceConfiguration::ColorHour;  
 
-            if ( hour == minute)
-                clockFace[hour] = Configuration::ColorHourMinute;
+            if (hour == minute)
+                _clockFace[hour] = Configuration::ClockFaceConfiguration::ColorHourMinute;
 
-            if ( hour == second)
-                clockFace[hour] = Configuration::ColorHourSecond;
+            if (hour == second)
+                _clockFace[hour] = Configuration::ClockFaceConfiguration::ColorHourSecond;
 
-            if ( minute == second)
-                clockFace[minute] = Configuration::ColorMinuteSecond;
+            if (minute == second)
+                _clockFace[minute] = Configuration::ClockFaceConfiguration::ColorMinuteSecond;
 
-            if ( minute == second && minute == hour)
-                clockFace[minute] = Configuration::ColorAll;
+            if (minute == second && minute == hour)
+                _clockFace[minute] = Configuration::ClockFaceConfiguration::ColorAll;
 
-            if (isNight(time) && Configuration::UseNightMode == true )
-                FastLED.setBrightness(Configuration::NightModeBrightness); 
+            if (isNight(time) && Configuration::ClockFaceConfiguration::UseNightMode == true )
+                FastLED.setBrightness(Configuration::ClockFaceConfiguration::NightModeBrightness); 
 
             FastLED.show();
         }
@@ -58,7 +66,7 @@ class ClockFace {
             else  
                 hourPosition = (hours * 5) - 30;
 
-            if (Configuration::HourSmoothMove == true)
+            if (Configuration::ClockFaceConfiguration::HourSmoothMove == true)
                 hourPosition += (minutes / 12);
 
             return hourPosition;  
@@ -81,6 +89,8 @@ class ClockFace {
         }
 
         bool isNight(const Time& now) {  
-            return !(now.getHours() >= Configuration::NightEndAt && now.getHours() <= Configuration::NightStartAt);
+            return !(now.getHours() >= Configuration::ClockFaceConfiguration::NightEndAt && now.getHours() <= Configuration::ClockFaceConfiguration::NightStartAt);
         }
 };
+
+char* ClockFace::_buffer = new char[20];
