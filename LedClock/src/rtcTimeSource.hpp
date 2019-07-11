@@ -12,11 +12,12 @@ class RtcTimeSource: public TimeSource {
 
     private:
         unsigned long _prevSyncTime;
+        unsigned long _prevUpdateTime;
         Time _currentTime;
         RtcDS1307<TwoWire> _rtc;
 
     public:
-        RtcTimeSource(): _rtc(Wire) {            
+        RtcTimeSource(): _prevSyncTime(0), _prevUpdateTime(0), _rtc(Wire) {            
         }
 
         const char* toString() {
@@ -60,7 +61,7 @@ class RtcTimeSource: public TimeSource {
             _rtc.SetSquareWavePin(DS1307SquareWaveOut_Low); 
         }
 
-    virtual void updateTime(int tickTime) {
+    virtual void updateTime() {
          unsigned long currentMillis = millis();
 
         if (_prevSyncTime == 0 || currentMillis - _prevSyncTime > Configuration::TimeSourceConfiguration::SyncInterval) {
@@ -70,7 +71,9 @@ class RtcTimeSource: public TimeSource {
             _currentTime = Time(rtcTime.Hour(), rtcTime.Minute(), rtcTime.Second());
         }
         else
-            _currentTime.addSeconds(tickTime / 1000.0);
+            _currentTime.addSeconds((currentMillis - _prevUpdateTime) / 1000.0);
+
+        _prevUpdateTime = currentMillis;
     }
 
     virtual Time getCurrentTime() const {

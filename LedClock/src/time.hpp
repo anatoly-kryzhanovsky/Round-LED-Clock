@@ -1,8 +1,11 @@
 #pragma once
 
-#include <cmath>
-
 class Time {
+  private:
+    static const long HourTotalMillis = 1000L * 60L * 60L;
+    static const long MinuteTotalMillis = 1000L * 60L * 60L;
+    static const long SecondTotalMillis = 1000L;
+
   private:
     static char* _buffer;
 
@@ -20,31 +23,31 @@ class Time {
     }
 
     int getHours() const {
-        return (int)(_millis / (1000 * 60 * 60));
+        return (int)(_millis / HourTotalMillis);
     }
 
     int getMinutes() const {
-        return (int)(_millis / (1000 * 60));
+        return (int)(_millis / MinuteTotalMillis);
     }
 
     int getSeconds() const {
-        return (int)(_millis / 1000);
+        return (int)(_millis / SecondTotalMillis);
     }
 
     void addSeconds(double s) {
-        _millis += s * 1000;
+        _millis += s * SecondTotalMillis;
     }
 
     void addMinutes(double m) {
-        _millis += m * 1000 * 60;
+        _millis += m * MinuteTotalMillis;
     }
 
     void addHours(double h) {
-        _millis += h * 1000 * 60 * 60;
+        _millis += h * HourTotalMillis;
     }
 
     const char* toString() {
-        sprintf(_buffer, "%02d:%02d%02d.%d", getHours(), getMinutes(), getSeconds(), (int)_millis % 1000);
+        sprintf(_buffer, "%02d:%02d:%02d.%d", getHours(), getMinutes(), getSeconds(), (int)_millis % 1000);
         return _buffer;
     }
 };

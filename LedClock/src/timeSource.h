@@ -5,7 +5,7 @@
 class TimeSource {
   public:
     virtual void init() = 0;
-    virtual void updateTime(int tickTime) = 0;
+    virtual void updateTime() = 0;
 
     virtual Time getCurrentTime() const = 0;
 
