@@ -29,11 +29,7 @@ class ClockControl {
     
     public:
         ClockControl(TimeSource* _timeSource): 
-            _timeSource(_timeSource), _increaseButtonPressed(false), _decreaseButtonPressed(false), _modeButtonPressed(false), _prevModeChange(0),  _currentMode (SystemMode::Normal) {            
-
-            pinMode(Configuration::ControlConfiguration::ModeButtonPin, INPUT);                
-            pinMode(Configuration::ControlConfiguration::IncreaseButtonPin, INPUT);                
-            pinMode(Configuration::ControlConfiguration::DecreaseButtonPin, INPUT);                
+            _timeSource(_timeSource), _increaseButtonPressed(false), _decreaseButtonPressed(false), _modeButtonPressed(false), _prevModeChange(0),  _currentMode (SystemMode::Normal) {                                   
         }
 
         const char* toString() {
@@ -81,8 +77,8 @@ class ClockControl {
             _increaseDebouncer.update();
             _decreaseDebouncer.update();
 
-            _modeButtonPressed = _modeDebouncer.read() == HIGH;
-            if(_modeButtonPressed) {
+            bool modeButtonPressed = _modeDebouncer.read() == HIGH;
+            if(modeButtonPressed && modeButtonPressed != _modeButtonPressed) {
                 switch(_currentMode) {
                     case SystemMode::Normal:
                         _currentMode = SystemMode::Hours;
@@ -106,16 +102,21 @@ class ClockControl {
                 _prevModeChange = millis();
             }
 
-            int dHours = 0, dMinutes = 0;
+            _modeButtonPressed = modeButtonPressed;
 
-            _increaseButtonPressed = _increaseDebouncer.read() == HIGH;            
-            if(_increaseButtonPressed) {
+            int dHours = 0, dMinutes = 0;
+            Time currentTime = _timeSource->getCurrentTime();
+
+            bool increaseButtonPressed = _increaseDebouncer.read() == HIGH;
+            if(increaseButtonPressed && _increaseButtonPressed != increaseButtonPressed) {
                 switch(_currentMode) {
                     case SystemMode::Hours:
                         dHours = 1;
                         break;
 
                     case SystemMode::Minutes:
+                        if(currentTime.getMinutes() == 59)
+                            dHours = -1;
                         dMinutes = 1;
                         break;
 
@@ -126,15 +127,19 @@ class ClockControl {
                 _prevModeChange = millis();
             }
 
-            _decreaseButtonPressed = _decreaseDebouncer.read() == HIGH;            
-            if(_decreaseButtonPressed) {
+            _increaseButtonPressed = increaseButtonPressed;
+           
+            bool decreaseButtonPressed = _decreaseDebouncer.read() == HIGH;            
+            if(decreaseButtonPressed && _decreaseButtonPressed != decreaseButtonPressed) {
                 switch(_currentMode) {
                     case SystemMode::Hours:
-                        dHours -= 1;
+                        dHours = -1;
                         break;
 
                     case SystemMode::Minutes:
-                        dMinutes -= 1;
+                        if(currentTime.getMinutes() == 0)
+                            dHours = 1;
+                        dMinutes = -1;
                         break;
 
                     default:
@@ -143,6 +148,8 @@ class ClockControl {
 
                 _prevModeChange = millis();
             }
+
+            _decreaseButtonPressed = decreaseButtonPressed;
 
             _timeSource->adjustTime(dHours, dMinutes);   
 

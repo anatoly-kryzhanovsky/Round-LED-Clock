@@ -6,11 +6,11 @@ class Configuration {
     public:
     class ControlConfiguration {
         public:
-            static const int ModeButtonPin           = D8;
-            static const int IncreaseButtonPin       = D7;
-            static const int DecreaseButtonPin       = D6;
-            static const int HourModeLedPin          = D0;
-            static const int MinuteModeLedPin        = D5;
+            static const int ModeButtonPin           = 2;
+            static const int IncreaseButtonPin       = 4;
+            static const int DecreaseButtonPin       = 6;
+            static const int HourModeLedPin          = 8;
+            static const int MinuteModeLedPin        = 10;
             static const int EditModeTimeout         = 5000;
             static const int ButtonDebounceInterval  = 5;
     };
@@ -24,7 +24,7 @@ class Configuration {
             static const int NightModeBrightness     = 20;
             static const unsigned long syncInterval  = 300000;
             static const int LedsCount               = 60;
-            static const int LedDataPin              = D4;
+            static const int LedDataPin              = 7;
 
             static const CRGB ColorHour;
             static const CRGB ColorMinute;
@@ -37,12 +37,12 @@ class Configuration {
 
     class TimeSourceConfiguration {
         public:
-            static const unsigned long SyncInterval = 5 * 1000;
+            static const unsigned long SyncInterval = 60000L;
     };
         
     class SystemConfiguration {
         public:
-            static const int TickTime               = 5;
+            static const int TickTime               = 20;
     };       
 };
 
