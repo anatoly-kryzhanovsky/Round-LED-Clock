@@ -6,6 +6,8 @@
 #include <clockFace.hpp>
 #include <configuration.hpp>
 
+#define DEBUG
+
 RtcTimeSource timeSource;
 ClockControl control(&timeSource);
 ClockFace clockFace;
@@ -25,15 +27,17 @@ void loop() {
   control.update();
   clockFace.showTime(timeSource.getCurrentTime());
 
+#ifdef DEBUG
   if(millis() - lastDebugTime > 5000)
   {
     Serial.println("TimeSource state");
     Serial.println(timeSource.toString());
     Serial.println("Control state");
     Serial.println(control.toString());
-    /*Serial.println("ClockFace state");
-    Serial.println(clockFace.toString());*/
+    Serial.println("ClockFace state");
+    Serial.println(clockFace.toString());
   }
+#endif
  
   delay(Configuration::SystemConfiguration::TickTime);
 }
