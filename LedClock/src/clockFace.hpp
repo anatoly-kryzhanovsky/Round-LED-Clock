@@ -9,7 +9,6 @@ class ClockFace {
     private:
         static char* _buffer;
 
-
     private:
         CRGB _clockFace[Configuration::ClockFaceConfiguration::LedsCount];
 

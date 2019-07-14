@@ -24,7 +24,7 @@ class Configuration {
             static const int NightModeBrightness     = 20;
             static const unsigned long syncInterval  = 300000;
             static const int LedsCount               = 60;
-            static const int LedDataPin              = 7;
+            static const int LedDataPin              = 11;
 
             static const CRGB ColorHour;
             static const CRGB ColorMinute;
