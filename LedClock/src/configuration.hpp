@@ -51,7 +51,7 @@ class Configuration {
             static const int LedsCount               = 60;
 
             //pin for led strip data
-            static const int LedDataPin              = 11;
+            static const int LedDataPin              = D1;
 
             //color for hour led
             static const CRGB ColorHour;
@@ -81,6 +81,14 @@ class Configuration {
             //sync internal timer with timesource (millis)
             static const unsigned long SyncInterval = 60000L;
     };
+
+    class NtpTimeSourceConfiguration {
+        public:
+            static const char* NTPServerName;
+            static const char* ssid;
+            static const char* pass;
+            static const unsigned long timeZone;
+    };
         
     //global configuration
     class SystemConfiguration {
@@ -97,3 +105,8 @@ const CRGB Configuration::ClockFaceConfiguration::ColorHourMinute        = CRGB:
 const CRGB Configuration::ClockFaceConfiguration::ColorHourSecond        = CRGB::Magenta;
 const CRGB Configuration::ClockFaceConfiguration::ColorMinuteSecond      = CRGB::Cyan;
 const CRGB Configuration::ClockFaceConfiguration::ColorAll               = CRGB::White;
+
+const char* Configuration::NtpTimeSourceConfiguration::NTPServerName = "time.nist.gov";
+const char* Configuration::NtpTimeSourceConfiguration::ssid = "";
+const char* Configuration::NtpTimeSourceConfiguration::pass = "";
+const unsigned long Configuration::NtpTimeSourceConfiguration::timeZone = 1;
