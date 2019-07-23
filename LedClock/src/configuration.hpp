@@ -75,19 +75,23 @@ class Configuration {
             static const CRGB ColorAll;
     };
 
-    //configuration for timesource
-    class TimeSourceConfiguration {
+    //configuration for RTC timesource
+    class RtcTimeSourceConfiguration {
         public:
             //sync internal timer with timesource (millis)
             static const unsigned long SyncInterval = 60000L;
     };
 
+    //config for NTP timesource
     class NtpTimeSourceConfiguration {
         public:
             static const char* NTPServerName;
-            static const char* ssid;
-            static const char* pass;
-            static const unsigned long timeZone;
+            static const char* SSID;
+            static const char* Password;
+            static const unsigned long TimeZone = 1;
+
+            //sync internal timer with timesource (millis)
+            static const unsigned long SyncInterval = 60000L;
     };
         
     //global configuration
@@ -107,6 +111,5 @@ const CRGB Configuration::ClockFaceConfiguration::ColorMinuteSecond      = CRGB:
 const CRGB Configuration::ClockFaceConfiguration::ColorAll               = CRGB::White;
 
 const char* Configuration::NtpTimeSourceConfiguration::NTPServerName = "time.nist.gov";
-const char* Configuration::NtpTimeSourceConfiguration::ssid = "";
-const char* Configuration::NtpTimeSourceConfiguration::pass = "";
-const unsigned long Configuration::NtpTimeSourceConfiguration::timeZone = 1;
+const char* Configuration::NtpTimeSourceConfiguration::SSID = "";
+const char* Configuration::NtpTimeSourceConfiguration::Password = "";

@@ -1,5 +1,6 @@
 #pragma once
 
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <WiFiUdp.h>
@@ -7,40 +8,39 @@
 #include <timeSource.h>
 #include <configuration.hpp>
 
-const uint8_t NtpTimeSource::monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-const int NtpTimeSource::NTP_PACKET_SIZE = 48;
+const uint8_t NtpTimeSource::MonthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 struct DateTime {
-  int  year;
-  byte month;
-  byte day;
-  byte hour;
-  byte minute;
-  byte second;
-  byte dayofweek;
+  int  Year;
+  byte Month;
+  byte Day;
+  byte Hour;
+  byte Minute;
+  byte Second;
+  byte DayOfWeek;
 };
-
-DateTime currentDateTime;
 
 class NtpTimeSource: public TimeSource
 {
     private: 
-        static const uint8_t monthDays[];
-        static const int NTP_PACKET_SIZE;      
+        const uint32_t UnixEpochStart = 2208988800UL;
+        static const int NtpPacketSize = 48;
+        static const uint8_t MonthDays[];        
         
     private:
         ESP8266WiFiMulti _wifi;                     
         WiFiUDP _udp;                                    
         IPAddress _timeServerIp;                         
-        byte _ntpBuffer[NTP_PACKET_SIZE];                
-        unsigned long _prevNTP = 0;
-        unsigned long _lastNTPResponse = millis();
-        uint32_t _timeUNIX = 0;
-        unsigned long _prevActualTime = 0;
+        byte _ntpBuffer[NtpPacketSize];                
+        unsigned long _lastNtpRequest;
+        unsigned long _lastNtpResponse;        
+        unsigned long _prevActualTime;
+        uint32_t _unixTime;
+        DateTime _currentDateTime;
 
     public:
         NtpTimeSource(): 
-            _prevNTP(0), _lastNTPResponse(millis()), _timeUNIX(0), _prevActualTime(0)
+            _lastNtpRequest(0), _lastNtpResponse(millis()), _prevActualTime(0), _unixTime(0)
         {
         }
 
@@ -60,179 +60,182 @@ class NtpTimeSource: public TimeSource
             Serial.println(_timeServerIp);
   
             Serial.println("Sending NTP request ...");
-            sendNTPpacket(_timeServerIp);  
+            sendNtpRequest();  
         }
 
-        virtual void update()
+        virtual void updateTime()
         {
             unsigned long currentMillis = millis();
 
-            if (currentMillis - _prevNTP > Configuration::TimeSourceConfiguration::SyncInterval) 
+            if (currentMillis - _lastNtpRequest > Configuration::NtpTimeSourceConfiguration::SyncInterval) 
             { 
-                // If a minute has passed since last NTP request
-                _prevNTP = currentMillis;
-                Serial.println("\r\nSending NTP request ...");
-                sendNTPpacket(_timeServerIp);               // Send an NTP request
+                _lastNtpRequest = currentMillis;
+                Serial.println("Sending NTP request ...");
+                sendNtpRequest();
             }
 
-            uint32_t time = getTime();                   // Check if an NTP response has arrived and get the (UNIX) time
+            uint32_t time = readNtpResponse();
             if (time)
             {
-                // If a new timestamp has been received
-                _timeUNIX = time;
+                _unixTime = time;
                 Serial.print("NTP response:\t");
-                Serial.println(_timeUNIX);
-                _lastNTPResponse = currentMillis;
+                Serial.println(_unixTime);
+                _lastNtpResponse = currentMillis;
             } 
-            else if ((currentMillis - _lastNTPResponse) > 3600000) 
+            else if ((currentMillis - _lastNtpResponse) > 3600000) 
             {
                 Serial.println("More than 1 hour since last NTP response. Rebooting.");
                 Serial.flush();
                 ESP.reset();
             }
 
-            uint32_t actualTime = _timeUNIX + (currentMillis - _lastNTPResponse)/1000;
-            if (actualTime != _prevActualTime && _timeUNIX != 0) 
+            uint32_t actualTime = _unixTime + (currentMillis - _lastNtpResponse) / 1000;
+            if (actualTime != _prevActualTime && _unixTime != 0) 
             { 
-                // If a second has passed since last update
                 _prevActualTime = actualTime;
-                convertTime(actualTime);
+                updateCurrentTime(actualTime);
             }
+        }
+
+        virtual Time getCurrentTime() {
+            return Time(_currentDateTime.Hour, _currentDateTime.Minute, _currentDateTime.Second);
+        }
+
+        virtual void adjustTime(int dHour, int dMinute) {      
+                  
         }
 
     private:
         void startWiFi() 
         { 
-            _wifi.addAP(Configuration::NtpTimeSourceConfiguration::ssid, Configuration::NtpTimeSourceConfiguration::pass);   
+            _wifi.addAP(Configuration::NtpTimeSourceConfiguration::SSID, Configuration::NtpTimeSourceConfiguration::Password);   
 
             Serial.println("Connecting");
             byte i = 0;
             while (_wifi.run() != WL_CONNECTED) 
             {
                 delay(250);
-                Serial.print('.');                
+                Serial.print('.');
             }
 
-            Serial.println("\r\n");
             Serial.print("Connected to ");
             Serial.println(WiFi.SSID());             
             Serial.print("IP address:\t");
-            Serial.print(WiFi.localIP());            
-            Serial.println("\r\n");
+            Serial.print(WiFi.localIP());
         }
 
         void startUdp() 
         {
             Serial.println("Starting UDP");
-            _udp.begin(123);                          // Start listening for UDP messages on port 123
+            _udp.begin(123);
             Serial.print("Local port:\t");
             Serial.println(_udp.localPort());
             Serial.println();
         }
 
-        uint32_t getTime() 
+        uint32_t readNtpResponse() 
         {
             if (_udp.parsePacket() == 0) 
-            { // If there's no response (yet)
                 return 0;
-            }
-            _udp.read(_ntpBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
+            
+            // read the packet into the buffer
+            _udp.read(_ntpBuffer, NtpPacketSize); 
+            
             // Combine the 4 timestamp bytes into one 32-bit number
-            uint32_t NTPTime = (_ntpBuffer[40] << 24) | (_ntpBuffer[41] << 16) | (_ntpBuffer[42] << 8) | _ntpBuffer[43];
+            uint32_t ntpTime = (_ntpBuffer[40] << 24) | (_ntpBuffer[41] << 16) | (_ntpBuffer[42] << 8) | _ntpBuffer[43];
+            
             // Convert NTP time to a UNIX timestamp:
-            // Unix time starts on Jan 1 1970. That's 2208988800 seconds in NTP time:
-            const uint32_t seventyYears = 2208988800UL;
-            // subtract seventy years:
-            uint32_t UNIXTime = NTPTime - seventyYears;
-            return UNIXTime;
+            // subtract Jan 1 1970
+            uint32_t unixTime = ntpTime - UnixEpochStart;
+
+            return unixTime;
         }
 
-        void sendNTPpacket(IPAddress& address) 
+        void sendNtpRequest() 
         {
-            memset(_ntpBuffer, 0, NTP_PACKET_SIZE);  // set all bytes in the buffer to 0
+            // set all bytes in the buffer to 0
+            memset(_ntpBuffer, 0, NtpPacketSize); 
+            
             // Initialize values needed to form NTP request
-            _ntpBuffer[0] = 0b11100011;   // LI, Version, Mode
+            // LI, Version, Mode
+            _ntpBuffer[0] = 0b11100011;   
+            
             // send a packet requesting a timestamp:
-            _udp.beginPacket(address, 123); // NTP requests are to port 123
-            _udp.write(_ntpBuffer, NTP_PACKET_SIZE);
+            // NTP requests are to port 123
+            _udp.beginPacket(_timeServerIp, 123); 
+            _udp.write(_ntpBuffer, NtpPacketSize);
             _udp.endPacket();
         }    
 
-        void convertTime(uint32_t time) 
+        void updateCurrentTime(uint32_t time) 
         {
             // Correct time zone
-            time += (3600 * Configuration::NtpTimeSourceConfiguration::timeZone);
+            time += (3600 * Configuration::NtpTimeSourceConfiguration::TimeZone);
   
-            currentDateTime.second = time % 60;
-            currentDateTime.minute = time / 60 % 60;
-            currentDateTime.hour   = time / 3600 % 24;
+            _currentDateTime.Second = time % 60;
+            _currentDateTime.Minute = time / 60 % 60;
+            _currentDateTime.Hour   = time / 3600 % 24;
+
             time  /= 60;  // To minutes
             time  /= 60;  // To hours
             time  /= 24;  // To days
-            currentDateTime.dayofweek = ((time + 4) % 7) + 1;
+
+            _currentDateTime.DayOfWeek = ((time + 4) % 7) + 1;
+
             int year = 0;
             int days = 0;
-            while ((unsigned)(days += (LEAP_YEAR(year) ? 366 : 365)) <= time) 
+            while ((unsigned)(days += (isLeapYear(year) ? 366 : 365)) <= time) 
             {
                 year++;
             }
-            days -= LEAP_YEAR(year) ? 366 : 365;
+
+            days -= isLeapYear(year) ? 366 : 365;
             time  -= days; // To days in this year, starting at 0  
             days = 0;
+
             byte month = 0;
             byte monthLength = 0;
             for (month = 0; month < 12; month++) 
             {
                 if (month == 1) 
-                { // February
-                    if (LEAP_YEAR(year)) 
-                    {
+                { 
+                    // February
+                    if (isLeapYear(year)) 
                         monthLength = 29;
-                    } 
                     else 
-                    {
-                        monthLength = 28;
-                    }
+                        monthLength = 28;                    
                 } 
                 else 
-                {
-                    monthLength = monthDays[month];
-                }
-  
+                    monthLength = MonthDays[month];
+                  
                 if (time >= monthLength) 
-                {
                     time -= monthLength;
-                } 
                 else 
-                {
-                    break;
-                }
+                    break;                
             }
  
-            currentDateTime.day = time + 1;
-            currentDateTime.year = year + 1970;
-            currentDateTime.month = month + 1;  
+            _currentDateTime.Day = time + 1;
+            _currentDateTime.Year = year + 1970;
+            _currentDateTime.Month = month + 1;  
 
-            // Correct European Summer time
+            // Correct Summer time
             if (summerTime()) 
-            {
-                currentDateTime.hour += 1;
-            }
-
+                _currentDateTime.Hour += 1;
+            
 #ifdef DEBUG_ON
-            Serial.print(currentDateTime.year);
+            Serial.print(_currentDateTime.Year);
             Serial.print(" ");
-            Serial.print(currentDateTime.month);
+            Serial.print(_currentDateTime.Month);
             Serial.print(" ");
-            Serial.print(currentDateTime.day);
+            Serial.print(_currentDateTime.Day);
             Serial.print(" ");
-            Serial.print(currentDateTime.hour);
+            Serial.print(_currentDateTime.Hour);
             Serial.print(" ");
-            Serial.print(currentDateTime.minute);
+            Serial.print(_currentDateTime.Minute);
             Serial.print(" ");
-            Serial.print(currentDateTime.second);
+            Serial.print(_currentDateTime.Second);
             Serial.print(" day of week: ");
-            Serial.print(currentDateTime.dayofweek);
+            Serial.print(_currentDateTime.DayOfWeek);
             Serial.print(" summer time: ");
             Serial.print(summerTime());
             Serial.print(" night time: ");
@@ -243,16 +246,24 @@ class NtpTimeSource: public TimeSource
 
         bool summerTime() 
         {
-            if (currentDateTime.month < 3 || currentDateTime.month > 10) return false;  // No summer time in Jan, Feb, Nov, Dec
-            if (currentDateTime.month > 3 && currentDateTime.month < 10) return true;   // Summer time in Apr, May, Jun, Jul, Aug, Sep
-            if (currentDateTime.month == 3 && (currentDateTime.hour + 24 * currentDateTime.day) >= (3 +  24 * (31 - (5 * currentDateTime.year / 4 + 4) % 7)) || currentDateTime.month == 10 && (currentDateTime.hour + 24 * currentDateTime.day) < (3 +  24 * (31 - (5 * currentDateTime.year / 4 + 1) % 7)))
+            // No summer time in Jan, Feb, Nov, Dec
+            if (_currentDateTime.Month < 3 || _currentDateTime.Month > 10) 
+                return false;  
+
+            // Summer time in Apr, May, Jun, Jul, Aug, Sep
+            if (_currentDateTime.Month > 3 && _currentDateTime.Month < 10) 
+                return true;
+
+            if (_currentDateTime.Month == 3 && (_currentDateTime.Hour + 24 * _currentDateTime.Day) >= (3 +  24 * (31 - (5 * _currentDateTime.Year / 4 + 4) % 7)) 
+                || _currentDateTime.Month == 10 && (_currentDateTime.Hour + 24 * _currentDateTime.Day) < (3 +  24 * (31 - (5 * _currentDateTime.Year / 4 + 1) % 7)))
                 return true;
             else
                 return false;
         }
         
-        bool LEAP_YEAR(int year)
+        bool isLeapYear(int year)
         {
             return (((1970 + year) > 0) && !((1970 + year) % 4) && (((1970 + year) % 100) || !((1970 + year) % 400)));
         }
 };
+#endif
