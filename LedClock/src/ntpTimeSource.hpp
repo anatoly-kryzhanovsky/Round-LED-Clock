@@ -1,6 +1,9 @@
 #pragma once
 
 #if defined(ESP8266)
+
+#include <EEPROM.h>
+
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <WiFiUdp.h>
@@ -23,8 +26,10 @@ struct DateTime {
 class NtpTimeSource: public TimeSource
 {
     private: 
-        const uint32_t UnixEpochStart = 2208988800UL;
-        static const int NtpPacketSize = 48;
+        static const int HourAdjustAddress      = 0;
+        static const int MinuteAdjustAddress    = 1;
+        static const uint32_t UnixEpochStart    = 2208988800UL;
+        static const int NtpPacketSize          = 48;
         static const uint8_t MonthDays[];        
         
     private:
@@ -37,15 +42,21 @@ class NtpTimeSource: public TimeSource
         unsigned long _prevActualTime;
         uint32_t _unixTime;
         DateTime _currentDateTime;
+        int _dHour;
+        int _dMinute;
 
     public:
         NtpTimeSource(): 
-            _lastNtpRequest(0), _lastNtpResponse(millis()), _prevActualTime(0), _unixTime(0)
+            _lastNtpRequest(0), _lastNtpResponse(millis()), _prevActualTime(0), _unixTime(0), _dHour(0), _dMinute(0)
         {
         }
 
         virtual void init()
         {
+            EEPROM.begin(2);
+            _dHour = EEPROM.read(HourAdjustAddress);
+            _dMinute = EEPROM.read(MinuteAdjustAddress);
+
             startWiFi();
             startUdp();
 
@@ -102,7 +113,12 @@ class NtpTimeSource: public TimeSource
         }
 
         virtual void adjustTime(int dHour, int dMinute) {      
-                  
+            _dHour += dHour;
+            _dMinute += dMinute;
+            
+            EEPROM.write(HourAdjustAddress, _dHour);
+            EEPROM.write(MinuteAdjustAddress, _dMinute);
+            EEPROM.commit();
         }
 
     private:
@@ -171,6 +187,7 @@ class NtpTimeSource: public TimeSource
         {
             // Correct time zone
             time += (3600 * Configuration::NtpTimeSourceConfiguration::TimeZone);
+            time += _dMinute * 60 + _dHour * 3600;
   
             _currentDateTime.Second = time % 60;
             _currentDateTime.Minute = time / 60 % 60;
