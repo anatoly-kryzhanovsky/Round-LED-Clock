@@ -110,6 +110,6 @@ const CRGB Configuration::ClockFaceConfiguration::ColorHourSecond        = CRGB:
 const CRGB Configuration::ClockFaceConfiguration::ColorMinuteSecond      = CRGB::Cyan;
 const CRGB Configuration::ClockFaceConfiguration::ColorAll               = CRGB::White;
 
-const char* Configuration::NtpTimeSourceConfiguration::NTPServerName = "time.nist.gov";
+const char* Configuration::NtpTimeSourceConfiguration::NTPServerName = "ntp1.stratum2.ru";
 const char* Configuration::NtpTimeSourceConfiguration::SSID = "";
 const char* Configuration::NtpTimeSourceConfiguration::Password = "";

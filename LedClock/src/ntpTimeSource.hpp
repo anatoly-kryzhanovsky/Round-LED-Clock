@@ -11,8 +11,6 @@
 #include <timeSource.h>
 #include <configuration.hpp>
 
-const uint8_t NtpTimeSource::MonthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
 struct DateTime {
   int  Year;
   byte Month;
@@ -30,7 +28,8 @@ class NtpTimeSource: public TimeSource
         static const int MinuteAdjustAddress    = 1;
         static const uint32_t UnixEpochStart    = 2208988800UL;
         static const int NtpPacketSize          = 48;
-        static const uint8_t MonthDays[];        
+        static const uint8_t MonthDays[];    
+        static char* _buffer;    
         
     private:
         ESP8266WiFiMulti _wifi;                     
@@ -54,6 +53,8 @@ class NtpTimeSource: public TimeSource
         virtual void init()
         {
             EEPROM.begin(2);
+            //resetAdjust();
+
             _dHour = EEPROM.read(HourAdjustAddress);
             _dMinute = EEPROM.read(MinuteAdjustAddress);
 
@@ -108,7 +109,7 @@ class NtpTimeSource: public TimeSource
             }
         }
 
-        virtual Time getCurrentTime() {
+        virtual Time getCurrentTime() const {
             return Time(_currentDateTime.Hour, _currentDateTime.Minute, _currentDateTime.Second);
         }
 
@@ -121,17 +122,37 @@ class NtpTimeSource: public TimeSource
             EEPROM.commit();
         }
 
+        const char* toString() {  
+            sprintf(
+                _buffer,
+                "DateTime: %04d.%02d.%02d %02d:%02d:%02d IsSummerTime: %s", 
+                _currentDateTime.Year, 
+                (int)_currentDateTime.Month, 
+                (int)_currentDateTime.Day, 
+                (int)_currentDateTime.Hour, 
+                (int)_currentDateTime.Minute, 
+                (int)_currentDateTime.Second,
+                summerTime() ? "yes" : "no");
+
+            return _buffer;
+        }
+
     private:
+        void resetAdjust() {
+            EEPROM.write(HourAdjustAddress, 0);
+            EEPROM.write(MinuteAdjustAddress, 0);
+            EEPROM.commit();
+        }
+
         void startWiFi() 
         { 
             _wifi.addAP(Configuration::NtpTimeSourceConfiguration::SSID, Configuration::NtpTimeSourceConfiguration::Password);   
 
-            Serial.println("Connecting");
-            byte i = 0;
+            Serial.println("Connecting");            
             while (_wifi.run() != WL_CONNECTED) 
             {
                 delay(250);
-                Serial.print('.');
+                Serial.print('.');                
             }
 
             Serial.print("Connected to ");
@@ -177,7 +198,7 @@ class NtpTimeSource: public TimeSource
             _ntpBuffer[0] = 0b11100011;   
             
             // send a packet requesting a timestamp:
-            // NTP requests are to port 123
+            // NTP requests are to port 123            
             _udp.beginPacket(_timeServerIp, 123); 
             _udp.write(_ntpBuffer, NtpPacketSize);
             _udp.endPacket();
@@ -188,7 +209,7 @@ class NtpTimeSource: public TimeSource
             // Correct time zone
             time += (3600 * Configuration::NtpTimeSourceConfiguration::TimeZone);
             time += _dMinute * 60 + _dHour * 3600;
-  
+
             _currentDateTime.Second = time % 60;
             _currentDateTime.Minute = time / 60 % 60;
             _currentDateTime.Hour   = time / 3600 % 24;
@@ -238,27 +259,6 @@ class NtpTimeSource: public TimeSource
             // Correct Summer time
             if (summerTime()) 
                 _currentDateTime.Hour += 1;
-            
-#ifdef DEBUG_ON
-            Serial.print(_currentDateTime.Year);
-            Serial.print(" ");
-            Serial.print(_currentDateTime.Month);
-            Serial.print(" ");
-            Serial.print(_currentDateTime.Day);
-            Serial.print(" ");
-            Serial.print(_currentDateTime.Hour);
-            Serial.print(" ");
-            Serial.print(_currentDateTime.Minute);
-            Serial.print(" ");
-            Serial.print(_currentDateTime.Second);
-            Serial.print(" day of week: ");
-            Serial.print(_currentDateTime.DayOfWeek);
-            Serial.print(" summer time: ");
-            Serial.print(summerTime());
-            Serial.print(" night time: ");
-            Serial.print(night());  
-            Serial.println();
-#endif  
         }
 
         bool summerTime() 
@@ -283,4 +283,7 @@ class NtpTimeSource: public TimeSource
             return (((1970 + year) > 0) && !((1970 + year) % 4) && (((1970 + year) % 100) || !((1970 + year) % 400)));
         }
 };
+
+const uint8_t NtpTimeSource::MonthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+char* NtpTimeSource::_buffer = new char[255];
 #endif
