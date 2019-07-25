@@ -51,7 +51,7 @@ class Configuration {
             static const int LedsCount               = 60;
 
             //pin for led strip data
-            static const int LedDataPin              = 11;
+            static const int LedDataPin              = D1;
 
             //color for hour led
             static const CRGB ColorHour;
@@ -75,9 +75,21 @@ class Configuration {
             static const CRGB ColorAll;
     };
 
-    //configuration for timesource
-    class TimeSourceConfiguration {
+    //configuration for RTC timesource
+    class RtcTimeSourceConfiguration {
         public:
+            //sync internal timer with timesource (millis)
+            static const unsigned long SyncInterval = 60000L;
+    };
+
+    //config for NTP timesource
+    class NtpTimeSourceConfiguration {
+        public:
+            static const char* NTPServerName;
+            static const char* SSID;
+            static const char* Password;
+            static const unsigned long TimeZone = 1;
+
             //sync internal timer with timesource (millis)
             static const unsigned long SyncInterval = 60000L;
     };
@@ -97,3 +109,7 @@ const CRGB Configuration::ClockFaceConfiguration::ColorHourMinute        = CRGB:
 const CRGB Configuration::ClockFaceConfiguration::ColorHourSecond        = CRGB::Magenta;
 const CRGB Configuration::ClockFaceConfiguration::ColorMinuteSecond      = CRGB::Cyan;
 const CRGB Configuration::ClockFaceConfiguration::ColorAll               = CRGB::White;
+
+const char* Configuration::NtpTimeSourceConfiguration::NTPServerName = "ntp1.stratum2.ru";
+const char* Configuration::NtpTimeSourceConfiguration::SSID = "";
+const char* Configuration::NtpTimeSourceConfiguration::Password = "";

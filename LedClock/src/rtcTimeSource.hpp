@@ -65,7 +65,7 @@ class RtcTimeSource: public TimeSource {
         virtual void updateTime() {
             unsigned long currentMillis = millis();
 
-            if (_prevSyncTime == 0 || currentMillis - _prevSyncTime > Configuration::TimeSourceConfiguration::SyncInterval) {
+            if (_prevSyncTime == 0 || currentMillis - _prevSyncTime > Configuration::RtcTimeSourceConfiguration::SyncInterval) {
                 _prevSyncTime = currentMillis;
                 Serial.println("Sync time with RTC");   
                 RtcDateTime rtcTime = _rtc.GetDateTime(); 

@@ -2,13 +2,16 @@
 
 #include <time.hpp>
 #include <rtcTimeSource.hpp>
+#include <ntpTimeSource.hpp>
 #include <clockControl.hpp>
 #include <clockFace.hpp>
 #include <configuration.hpp>
 
 #define DEBUG
 
-RtcTimeSource timeSource;
+//RtcTimeSource timeSource;
+NtpTimeSource timeSource;
+
 ClockControl control(&timeSource);
 ClockFace clockFace;
 
@@ -30,6 +33,7 @@ void loop() {
 #ifdef DEBUG
   if(millis() - lastDebugTime > 5000)
   {
+    lastDebugTime = millis();
     Serial.println("TimeSource state");
     Serial.println(timeSource.toString());
     Serial.println("Control state");
