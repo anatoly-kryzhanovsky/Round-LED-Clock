@@ -9,7 +9,7 @@
   
  ## Schema
  
- ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/schema.png) 
+ ![alt text](docs/readme_assets/schema.png) 
  
  Connection:
  * connect 5 volts from power source to Vin pin of arduino board (Vcc, 5V, Vin,...)
@@ -37,19 +37,19 @@
 
 | Image | Count | Components|
 | ------|-------|------|
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/wemos.png) | 1 |WeMOS D1 Mini ESP module (if you want to use NTP sync) |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/ledstrip.png) | 1 |LED strip WS2812B 60 RGB LED's 1 meter           |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/filament_black.png) | X | Black PLA filament                        |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/filament_white.png) | X | White PLA filament                        |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/screw.png) | 4 | M3 screws                                          |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/power_adapter.png)  | 1| Power adapter (5V DC, 0.5A)                |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/switch.png) | 3 | switch                                            |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/led.png) | 2 | leds (5V)                                            |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/resistor_10kohm.png) | 3 | resistors of 10kOm                       |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/resistor_220ohm.png) | 2 | resistors of 220Om                       |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/ds1307.png) | 1 | DS1307 RTC if you want to use RTC sync)           |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/terminal.png) | 2 | 2 power terminal)                               |
-| ![alt text](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/docs/readme assets/wires.png) | X | Jumper wires                                       |
+| ![alt text](docs/readme_assets/wemos.png) | 1 |WeMOS D1 Mini ESP module (if you want to use NTP sync) |
+| ![alt text](docs/readme_assets/ledstrip.png) | 1 |LED strip WS2812B 60 RGB LED's 1 meter           |
+| ![alt text](docs/readme_assets/filament_black.png) | X | Black PLA filament                        |
+| ![alt text](docs/readme_assets/filament_white.png) | X | White PLA filament                        |
+| ![alt text](docs/readme_assets/screw.png) | 4 | M3 screws                                          |
+| ![alt text](docs/readme_assets/power_adapter.png)  | 1| Power adapter (5V DC, 0.5A)                |
+| ![alt text](docs/readme_assets/switch.png) | 3 | switch                                            |
+| ![alt text](docs/readme_assets/led.png) | 2 | leds (5V)                                            |
+| ![alt text](docs/readme_assets/resistor_10kohm.png) | 3 | resistors of 10kOm                       |
+| ![alt text](docs/readme_assets/resistor_220ohm.png) | 2 | resistors of 220Om                       |
+| ![alt text](docs/readme_assets/ds1307.png) | 1 | DS1307 RTC if you want to use RTC sync)           |
+| ![alt text](docs/readme_assets/terminal.png) | 2 | 2 power terminal)                               |
+| ![alt text](docs/readme_assets/wires.png) | X | Jumper wires                                       |
 
 
 ## YouTube video (in progress)
@@ -59,7 +59,7 @@ alt="Click to view: LED Clock" width="500" border="1" /></a>
 
 ## Configuration
 
-All configuration stored in [https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/LedClock/src/configuration.hpp](https://github.com/anatoly-kryzhanovsky/Round-LED-Clock/blob/master/LedClock/src/configuration.hpp) file.
+All configuration stored in [LedClock/src/configuration.hpp](LedClock/src/configuration.hpp) file.
 
 There are configurations for different part of the system:
 
