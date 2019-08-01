@@ -8,19 +8,19 @@ class Configuration {
     class ControlConfiguration {
         public:
             //pin number for mode button (none/clock/minutes control)
-            static const int ModeButtonPin           = 2;
+            static const int ModeButtonPin           = D6;
 
             //pin number for increase button (add hour or minute)
-            static const int IncreaseButtonPin       = 4;
+            static const int IncreaseButtonPin       = D5;
 
             //pin number for decrease button (substract hour or minute)
-            static const int DecreaseButtonPin       = 6;
+            static const int DecreaseButtonPin       = D0;
 
             //pin number for set hours mode led
-            static const int HourModeLedPin          = 8;
+            static const int HourModeLedPin          = D4;
 
             //pin number for set minutes mode led
-            static const int MinuteModeLedPin        = 10;
+            static const int MinuteModeLedPin        = D3;
 
             //timeout (in millis) for autoexit from set time mode
             static const int EditModeTimeout         = 5000;
@@ -32,6 +32,12 @@ class Configuration {
     //configuration for clockface
     class ClockFaceConfiguration {
         public:        
+            //led number for zero count
+            static const int ZeroLed                 = 30;
+
+            //direction for leds numbering (+1 for clockwise, -1 for counterclockwise)
+            static const int Direction               = -1;
+
             //enable move hour led between interger parts (i.e. if true then at 20 minutes hour led should be at second led in hour group, if false then hour led move only after 59 minutes 59 seconds reached)
             static const bool HourSmoothMove         = true;
 
@@ -51,7 +57,7 @@ class Configuration {
             static const int LedsCount               = 60;
 
             //pin for led strip data
-            static const int LedDataPin              = D1;
+            static const int LedDataPin              = D7;
 
             //color for hour led
             static const CRGB ColorHour;
