@@ -9,8 +9,8 @@
 
 #define DEBUG
 
-//RtcTimeSource timeSource;
-NtpTimeSource timeSource;
+RtcTimeSource timeSource;
+//NtpTimeSource timeSource;
 
 ClockControl control(&timeSource);
 ClockFace clockFace;

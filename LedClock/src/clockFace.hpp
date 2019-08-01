@@ -56,35 +56,51 @@ class ClockFace {
             int hours = time.getHours();
             int minutes = time.getMinutes();
 
-            if (hours > 12)
-                hours = hours - 12;
+            int ledsPerMinute = Configuration::ClockFaceConfiguration::LedsCount / 60;
+            if (hours >= 12)
+	            hours = hours - 12;
+            
+            int hourPosition = hours * ledsPerMinute * 5;
+            if (Configuration::ClockFaceConfiguration::HourSmoothMove)
+	            hourPosition += minutes * 5 * ledsPerMinute / 60;
 
-            int hourPosition;
-            if (hours <= 5) 
-                hourPosition = (hours * 5) + 30;
-            else  
-                hourPosition = (hours * 5) - 30;
-
-            if (Configuration::ClockFaceConfiguration::HourSmoothMove == true)
-                hourPosition += (minutes / 12);
+            hourPosition += Configuration::ClockFaceConfiguration::ZeroLed;
+            if (Configuration::ClockFaceConfiguration::Direction < 0)
+	            hourPosition = Configuration::ClockFaceConfiguration::LedsCount - hourPosition;
+            if (hourPosition < 0)
+	            hourPosition = hourPosition + Configuration::ClockFaceConfiguration::LedsCount;
+            if (hourPosition >= Configuration::ClockFaceConfiguration::LedsCount)
+	            hourPosition = hourPosition - Configuration::ClockFaceConfiguration::LedsCount;
 
             return hourPosition;  
         }
 
         int getMinutePosition(const Time& time) {
             int minutes = time.getMinutes();
-            if (minutes < 30) 
-                return minutes + 30;
-            else 
-                return minutes - 30;
+            int minutePosition = minutes + Configuration::ClockFaceConfiguration::ZeroLed;
+            if (Configuration::ClockFaceConfiguration::Direction < 0)
+	            minutePosition = Configuration::ClockFaceConfiguration::LedsCount - minutePosition;
+
+            if (minutePosition < 0)
+	            minutePosition = minutePosition + Configuration::ClockFaceConfiguration::LedsCount;
+            if (minutePosition >= Configuration::ClockFaceConfiguration::LedsCount)
+	            minutePosition = minutePosition  - Configuration::ClockFaceConfiguration::LedsCount;
+
+            return minutePosition;
         }
 
         int getSecondPosition(const Time& time) {
-            int minutes = time.getSeconds();
-            if (minutes < 30) 
-                return minutes + 30;
-            else 
-                return minutes - 30;
+            int seconds = time.getSeconds();
+            int secondPosition = seconds + Configuration::ClockFaceConfiguration::ZeroLed;
+            if (Configuration::ClockFaceConfiguration::Direction < 0)
+	            secondPosition = Configuration::ClockFaceConfiguration::LedsCount - secondPosition;
+
+            if (secondPosition < 0)
+	            secondPosition = secondPosition + Configuration::ClockFaceConfiguration::LedsCount;
+            if (secondPosition >= Configuration::ClockFaceConfiguration::LedsCount)
+	            secondPosition = secondPosition  - Configuration::ClockFaceConfiguration::LedsCount;
+
+            return secondPosition;            
         }
 
         bool isNight(const Time& now) {  
