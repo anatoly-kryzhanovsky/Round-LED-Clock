@@ -53,7 +53,6 @@ class NtpTimeSource: public TimeSource
         virtual void init()
         {
             EEPROM.begin(2);
-            //resetAdjust();
 
             _dHour = EEPROM.read(HourAdjustAddress);
             _dMinute = EEPROM.read(MinuteAdjustAddress);
@@ -111,6 +110,13 @@ class NtpTimeSource: public TimeSource
 
         virtual Time getCurrentTime() const {
             return Time(_currentDateTime.Hour, _currentDateTime.Minute, _currentDateTime.Second);
+        }
+
+        virtual void reset() {
+            resetAdjust();
+
+            _dHour = 0;
+            _dMinute = 0;
         }
 
         virtual void adjustTime(int dHour, int dMinute) {      

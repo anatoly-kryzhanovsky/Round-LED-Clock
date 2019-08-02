@@ -3,10 +3,11 @@
 #include <Arduino.h>
 #include <Bounce2.h>
 
+#include <component.hpp>
 #include <timeSource.h>
 #include <configuration.hpp>
 
-class ClockControl {        
+class ClockControl: public Component {        
     enum SystemMode {
         Normal,
         Hours,
@@ -30,6 +31,22 @@ class ClockControl {
     public:
         ClockControl(TimeSource* _timeSource): 
             _timeSource(_timeSource), _increaseButtonPressed(false), _decreaseButtonPressed(false), _modeButtonPressed(false), _prevModeChange(0),  _currentMode (SystemMode::Normal) {                                   
+        }
+
+        virtual void selfCheck() {
+            for(int i = 0; i < 3; i++)
+            {
+                digitalWrite(Configuration::ControlConfiguration::HourModeLedPin, LOW);
+                digitalWrite(Configuration::ControlConfiguration::MinuteModeLedPin, LOW);
+
+                delay(500);
+
+                digitalWrite(Configuration::ControlConfiguration::HourModeLedPin, HIGH);
+                digitalWrite(Configuration::ControlConfiguration::MinuteModeLedPin, HIGH);
+            }
+
+            digitalWrite(Configuration::ControlConfiguration::HourModeLedPin, LOW);
+            digitalWrite(Configuration::ControlConfiguration::MinuteModeLedPin, LOW);
         }
 
         const char* toString() {
@@ -108,6 +125,22 @@ class ClockControl {
             Time currentTime = _timeSource->getCurrentTime();
 
             bool increaseButtonPressed = _increaseDebouncer.read() == HIGH;
+            bool decreaseButtonPressed = _decreaseDebouncer.read() == HIGH;  
+
+            if(increaseButtonPressed 
+                && decreaseButtonPressed 
+                && _increaseButtonPressed != increaseButtonPressed
+                && _decreaseButtonPressed != decreaseButtonPressed) 
+            {
+                _timeSource->reset();
+                _increaseButtonPressed = increaseButtonPressed;
+                _decreaseButtonPressed = decreaseButtonPressed;
+
+                _currentMode = SystemMode::Normal;
+
+                return;
+            }
+
             if(increaseButtonPressed && _increaseButtonPressed != increaseButtonPressed) {
                 switch(_currentMode) {
                     case SystemMode::Hours:
@@ -128,8 +161,7 @@ class ClockControl {
             }
 
             _increaseButtonPressed = increaseButtonPressed;
-           
-            bool decreaseButtonPressed = _decreaseDebouncer.read() == HIGH;            
+                                 
             if(decreaseButtonPressed && _decreaseButtonPressed != decreaseButtonPressed) {
                 switch(_currentMode) {
                     case SystemMode::Hours:

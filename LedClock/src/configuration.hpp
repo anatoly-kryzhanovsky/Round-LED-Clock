@@ -2,6 +2,8 @@
 
 #include <FastLED.h>
 
+#define DEBUG
+
 class Configuration {
     public:
     //configuration for control module
@@ -42,16 +44,16 @@ class Configuration {
             static const bool HourSmoothMove         = true;
 
             //use different brightness for night hours
-            static const bool UseNightMode           = false;
+            static const bool UseNightMode           = true;
 
             //hours when night node should be deactivated
-            static const int NightEndAt              = 8;
+            static const int NightEndAt              = 6;
 
             //hours when night node should be activated
-            static const int NightStartAt            = 20;
+            static const int NightStartAt            = 22;
 
             //brightness for nightmod
-            static const int NightModeBrightness     = 20;
+            static const int NightModeBrightness     = 40;
 
             //leds count in strip
             static const int LedsCount               = 60;
