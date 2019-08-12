@@ -2,10 +2,11 @@
 
 #include <FastLED.h>
 
+#include <component.hpp>
 #include <time.hpp>
 #include <configuration.hpp>
 
-class ClockFace {
+class ClockFace : public Component {
     private:
         static char* _buffer;
 
@@ -16,6 +17,26 @@ class ClockFace {
         void init() {
             FastLED.delay(3000);
             FastLED.addLeds<WS2812B, Configuration::ClockFaceConfiguration::LedDataPin, GRB>(_clockFace, Configuration::ClockFaceConfiguration::LedsCount);  
+        }
+
+        virtual void selfCheck() {
+            FastLED.setBrightness(255); 
+
+            for (int i = 0; i < Configuration::ClockFaceConfiguration::LedsCount; i++) 
+            {
+                _clockFace[i] = CRGB::Green;                
+                FastLED.show();
+
+                delay(40);
+            }
+
+            for (int i = 0; i < Configuration::ClockFaceConfiguration::LedsCount; i++) 
+            {
+                _clockFace[i] = CRGB::Black;            
+                FastLED.show();
+
+                delay(40);
+            }
         }
 
         const char* toString() {
@@ -48,6 +69,8 @@ class ClockFace {
 
             if (isNight(time) && Configuration::ClockFaceConfiguration::UseNightMode == true )
                 FastLED.setBrightness(Configuration::ClockFaceConfiguration::NightModeBrightness); 
+            else
+                FastLED.setBrightness(255); 
 
             FastLED.show();
         }

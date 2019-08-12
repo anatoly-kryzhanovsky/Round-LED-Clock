@@ -83,6 +83,15 @@ class RtcTimeSource: public TimeSource {
             return _currentTime;
         }
 
+        virtual void reset() {
+             RtcDateTime zero = RtcDateTime(0, 0, 0, 0, 0, 0);
+             _currentTime.setHours(0);
+             _currentTime.setMinutes(0);
+             _currentTime.setSeconds(0);
+             
+             _rtc.SetDateTime(zero);
+        }
+
         virtual void adjustTime(int dHour, int dMinute) {
             _currentTime.addMinutes(dMinute);
             _currentTime.addHours(dHour);
