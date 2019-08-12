@@ -43,6 +43,8 @@ class ClockControl: public Component {
 
                 digitalWrite(Configuration::ControlConfiguration::HourModeLedPin, HIGH);
                 digitalWrite(Configuration::ControlConfiguration::MinuteModeLedPin, HIGH);
+
+                delay(500);
             }
 
             digitalWrite(Configuration::ControlConfiguration::HourModeLedPin, LOW);
@@ -95,7 +97,7 @@ class ClockControl: public Component {
             _decreaseDebouncer.update();
 
             bool modeButtonPressed = _modeDebouncer.read() == HIGH;
-            if(modeButtonPressed && modeButtonPressed != _modeButtonPressed) {
+            if(modeButtonPressed && modeButtonPressed != _modeButtonPressed) {               
                 switch(_currentMode) {
                     case SystemMode::Normal:
                         _currentMode = SystemMode::Hours;
@@ -127,11 +129,9 @@ class ClockControl: public Component {
             bool increaseButtonPressed = _increaseDebouncer.read() == HIGH;
             bool decreaseButtonPressed = _decreaseDebouncer.read() == HIGH;  
 
-            if(increaseButtonPressed 
-                && decreaseButtonPressed 
-                && _increaseButtonPressed != increaseButtonPressed
-                && _decreaseButtonPressed != decreaseButtonPressed) 
-            {
+            if(increaseButtonPressed && decreaseButtonPressed) {
+                 Serial.println("RESET");
+
                 _timeSource->reset();
                 _increaseButtonPressed = increaseButtonPressed;
                 _decreaseButtonPressed = decreaseButtonPressed;

@@ -69,6 +69,8 @@ class ClockFace : public Component {
 
             if (isNight(time) && Configuration::ClockFaceConfiguration::UseNightMode == true )
                 FastLED.setBrightness(Configuration::ClockFaceConfiguration::NightModeBrightness); 
+            else
+                FastLED.setBrightness(255); 
 
             FastLED.show();
         }
