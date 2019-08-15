@@ -10,6 +10,7 @@ class TimeSource: public Component {
 
     virtual Time getCurrentTime() const = 0;
 
+    virtual void setTime(int hour, int minute, int second) = 0;
     virtual void adjustTime(int dHour, int dMinute) = 0;
     virtual void reset() = 0;
 

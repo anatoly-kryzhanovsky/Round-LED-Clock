@@ -6,6 +6,7 @@
 
 class Clock {
     private:
+        Configuration* _configuration;
         TimeSource* _timeSource;
         ClockFace* _clockFace;
         ClockControl* _clockControl;
@@ -13,9 +14,13 @@ class Clock {
         unsigned long _lastDebugTime;
 
     public:
-        Clock(TimeSource* timeSource, ClockFace* clockFace, ClockControl* clockControl)
-            : _timeSource(timeSource), _clockFace(clockFace), _clockControl(clockControl),  _lastDebugTime(0)
+        Clock(Configuration* configuration, TimeSource* timeSource, ClockFace* clockFace, ClockControl* clockControl)
+            : _configuration(configuration), _timeSource(timeSource), _clockFace(clockFace), _clockControl(clockControl),  _lastDebugTime(0)
         {
+        }
+
+        Configuration* getConfiguration() {
+            return _configuration;
         }
 
         void init() {

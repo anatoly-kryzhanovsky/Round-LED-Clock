@@ -11,13 +11,15 @@ class RtcTimeSource: public TimeSource {
         static char* _buffer;
 
     private:
+        Configuration::RtcTimeSourceConfiguration* _configuration;
         unsigned long _prevSyncTime;
         unsigned long _prevUpdateTime;
         Time _currentTime;
         RtcDS1307<TwoWire> _rtc;
 
     public:
-        RtcTimeSource(): _prevSyncTime(0), _prevUpdateTime(0), _rtc(Wire) {            
+        RtcTimeSource(Configuration::RtcTimeSourceConfiguration* configuration):
+            _configuration(configuration), _prevSyncTime(0), _prevUpdateTime(0), _rtc(Wire) {            
         }
 
         const char* toString() {
@@ -38,6 +40,15 @@ class RtcTimeSource: public TimeSource {
                 millis() - _prevSyncTime);               
 
             return _buffer;
+        }
+
+        virtual void setTime(int hour, int minute, int second) {
+            _currentTime.setHours(hour);
+            _currentTime.setMinutes(minute);
+            _currentTime.setSeconds(second);
+
+            RtcDateTime adjustedTime = RtcDateTime(0, 0, 0, _currentTime.getHours(), _currentTime.getMinutes(), _currentTime.getSeconds());
+            _rtc.SetDateTime(adjustedTime);
         }
 
         virtual void init() {
@@ -65,7 +76,7 @@ class RtcTimeSource: public TimeSource {
         virtual void updateTime() {
             unsigned long currentMillis = millis();
 
-            if (_prevSyncTime == 0 || currentMillis - _prevSyncTime > Configuration::RtcTimeSourceConfiguration::SyncInterval) {
+            if (_prevSyncTime == 0 || currentMillis - _prevSyncTime > _configuration->SyncInterval) {
                 _prevSyncTime = currentMillis;
                 Serial.println("Sync time with RTC");   
                 RtcDateTime rtcTime = _rtc.GetDateTime(); 

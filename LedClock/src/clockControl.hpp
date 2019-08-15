@@ -18,6 +18,7 @@ class ClockControl: public Component {
         static char* _buffer;
 
     private:
+        Configuration::ControlConfiguration* _configuration;
         TimeSource* _timeSource;
         bool _increaseButtonPressed;
         bool _decreaseButtonPressed;
@@ -29,8 +30,8 @@ class ClockControl: public Component {
         Bounce _decreaseDebouncer;        
     
     public:
-        ClockControl(TimeSource* _timeSource): 
-            _timeSource(_timeSource), _increaseButtonPressed(false), _decreaseButtonPressed(false), _modeButtonPressed(false), _prevModeChange(0),  _currentMode (SystemMode::Normal) {                                   
+        ClockControl(TimeSource* _timeSource, Configuration::ControlConfiguration* configuration): 
+            _configuration(configuration), _timeSource(_timeSource), _increaseButtonPressed(false), _decreaseButtonPressed(false), _modeButtonPressed(false), _prevModeChange(0),  _currentMode (SystemMode::Normal) {                                   
         }
 
         virtual void selfCheck() {
@@ -78,13 +79,13 @@ class ClockControl: public Component {
             pinMode(Configuration::ControlConfiguration::MinuteModeLedPin, OUTPUT);
 
             _modeDebouncer.attach(Configuration::ControlConfiguration::ModeButtonPin);
-            _modeDebouncer.interval(Configuration::ControlConfiguration::ButtonDebounceInterval);
+            _modeDebouncer.interval(_configuration->ButtonDebounceInterval);
 
             _increaseDebouncer.attach(Configuration::ControlConfiguration::IncreaseButtonPin);
-            _increaseDebouncer.interval(Configuration::ControlConfiguration::ButtonDebounceInterval);
+            _increaseDebouncer.interval(_configuration->ButtonDebounceInterval);
 
             _decreaseDebouncer.attach(Configuration::ControlConfiguration::DecreaseButtonPin);
-            _decreaseDebouncer.interval(Configuration::ControlConfiguration::ButtonDebounceInterval);
+            _decreaseDebouncer.interval(_configuration->ButtonDebounceInterval);
 
             _currentMode = SystemMode::Normal;
 
@@ -185,7 +186,7 @@ class ClockControl: public Component {
 
             _timeSource->adjustTime(dHours, dMinutes);   
 
-            if(millis() - _prevModeChange > Configuration::ControlConfiguration::EditModeTimeout) {
+            if(millis() - _prevModeChange > _configuration->EditModeTimeout) {
                 digitalWrite(Configuration::ControlConfiguration::HourModeLedPin, LOW);
                 digitalWrite(Configuration::ControlConfiguration::MinuteModeLedPin, LOW);
                 _currentMode = SystemMode::Normal;

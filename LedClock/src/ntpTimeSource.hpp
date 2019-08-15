@@ -32,6 +32,7 @@ class NtpTimeSource: public TimeSource
         static char* _buffer;    
         
     private:
+        Configuration::NtpTimeSourceConfiguration* _configuration;
         ESP8266WiFiMulti _wifi;                     
         WiFiUDP _udp;                                    
         IPAddress _timeServerIp;                         
@@ -45,9 +46,18 @@ class NtpTimeSource: public TimeSource
         int _dMinute;
 
     public:
-        NtpTimeSource(): 
-            _lastNtpRequest(0), _lastNtpResponse(millis()), _prevActualTime(0), _unixTime(0), _dHour(0), _dMinute(0)
+        NtpTimeSource(Configuration::NtpTimeSourceConfiguration* configuration): 
+            _configuration(configuration), _lastNtpRequest(0), _lastNtpResponse(millis()), _prevActualTime(0), _unixTime(0), _dHour(0), _dMinute(0)
         {
+        }
+
+         virtual void setTime(int hour, int minute, int second) {
+            _dHour = _currentDateTime.Hour - hour - _configuration->TimeZone;
+            _dMinute = _currentDateTime.Minute - minute;
+            
+            EEPROM.write(HourAdjustAddress, _dHour);
+            EEPROM.write(MinuteAdjustAddress, _dMinute);
+            EEPROM.commit();
         }
 
         virtual void init()
@@ -60,7 +70,7 @@ class NtpTimeSource: public TimeSource
             startWiFi();
             startUdp();
 
-            if(!WiFi.hostByName(Configuration::NtpTimeSourceConfiguration::NTPServerName, _timeServerIp)) 
+            if(!WiFi.hostByName(_configuration->NTPServerName, _timeServerIp)) 
             { 
                 Serial.println("DNS lookup failed. Rebooting.");
                 Serial.flush();
@@ -78,7 +88,7 @@ class NtpTimeSource: public TimeSource
         {
             unsigned long currentMillis = millis();
 
-            if (currentMillis - _lastNtpRequest > Configuration::NtpTimeSourceConfiguration::SyncInterval) 
+            if (currentMillis - _lastNtpRequest > _configuration->SyncInterval) 
             { 
                 _lastNtpRequest = currentMillis;
                 Serial.println("Sending NTP request ...");
@@ -152,7 +162,7 @@ class NtpTimeSource: public TimeSource
 
         void startWiFi() 
         { 
-            _wifi.addAP(Configuration::NtpTimeSourceConfiguration::SSID, Configuration::NtpTimeSourceConfiguration::Password);   
+            _wifi.addAP(_configuration->SSID, _configuration->Password);   
 
             Serial.println("Connecting");            
             while (_wifi.run() != WL_CONNECTED) 
@@ -213,7 +223,7 @@ class NtpTimeSource: public TimeSource
         void updateCurrentTime(uint32_t time) 
         {
             // Correct time zone
-            time += (3600 * Configuration::NtpTimeSourceConfiguration::TimeZone);
+            time += (3600 * _configuration->TimeZone);
             time += _dMinute * 60 + _dHour * 3600;
 
             _currentDateTime.Second = time % 60;

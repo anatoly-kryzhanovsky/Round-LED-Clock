@@ -10,35 +10,51 @@ class ClockFactory {
     public:
         static Clock* createRtcClockWithControl()
         {
-            TimeSource* timeSource = new RtcTimeSource();
-            ClockControl* control = new ClockControl(timeSource);
-            ClockFace* clockFace = new ClockFace();
+            Configuration* configuration = new Configuration();
+            configuration->init();
+            configuration->load();
 
-            return new Clock(timeSource, clockFace, control);
+            TimeSource* timeSource = new RtcTimeSource(configuration->getRtcTimeSourceConfiguration());
+            ClockControl* control = new ClockControl(timeSource, configuration->getControlConfiguration());
+            ClockFace* clockFace = new ClockFace(configuration->getClockFaceConfiguration());
+
+            return new Clock(configuration, timeSource, clockFace, control);
         }
 
         static Clock* createRtcClockWithoutControl()
         {
-            TimeSource* timeSource = new RtcTimeSource();            
-            ClockFace* clockFace = new ClockFace();
+            Configuration* configuration = new Configuration();
+            configuration->init();
+            configuration->load();
 
-            return new Clock(timeSource, clockFace, nullptr);
+            TimeSource* timeSource = new RtcTimeSource(configuration->getRtcTimeSourceConfiguration());            
+            ClockFace* clockFace = new ClockFace(configuration->getClockFaceConfiguration());
+
+            return new Clock(configuration, timeSource, clockFace, nullptr);
         }
 
         static Clock* createNtpClockWithControl()
         {
-            TimeSource* timeSource = new NtpTimeSource();
-            ClockControl* control = new ClockControl(timeSource);
-            ClockFace* clockFace = new ClockFace();
+            Configuration* configuration = new Configuration();
+            configuration->init();
+            configuration->load();
 
-            return new Clock(timeSource, clockFace, control);
+            TimeSource* timeSource = new NtpTimeSource(configuration->getNtpTimeSourceConfiguration());
+            ClockControl* control = new ClockControl(timeSource, configuration->getControlConfiguration());
+            ClockFace* clockFace = new ClockFace(configuration->getClockFaceConfiguration());
+
+            return new Clock(configuration, timeSource, clockFace, control);
         }
 
-         static Clock* createNtpClockWithoutControl()
+        static Clock* createNtpClockWithoutControl()
         {
-            TimeSource* timeSource = new NtpTimeSource();            
-            ClockFace* clockFace = new ClockFace();
+            Configuration* configuration = new Configuration();
+            configuration->init();
+            configuration->load();
 
-            return new Clock(timeSource, clockFace, nullptr);
+            TimeSource* timeSource = new NtpTimeSource(configuration->getNtpTimeSourceConfiguration());            
+            ClockFace* clockFace = new ClockFace(configuration->getClockFaceConfiguration());
+
+            return new Clock(configuration, timeSource, clockFace, nullptr);
         }
 };

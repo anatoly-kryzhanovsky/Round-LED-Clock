@@ -7,6 +7,29 @@
 
 class Configuration {
     public:
+    //configuration for remote control module
+    class RemoteControlConfiguration {
+        public:
+            char* SSID;
+            char* Password;
+
+            static const int IncomingPort = 1024; 
+            
+        public:
+            void load(int &offset) {               
+            }
+
+            void save(int &offset) {                
+            }
+
+            void loadDefaults(int &offset) {                
+            }
+
+            size_t size() const {
+                return sizeof(int);
+            }
+    };
+
     //configuration for control module
     class ControlConfiguration {
         public:
@@ -26,19 +49,19 @@ class Configuration {
             static const int MinuteModeLedPin        = D3;
 
             //timeout (in millis) for autoexit from set time mode
-            int EditModeTimeout;
+            unsigned int EditModeTimeout;
 
             //edbounce interval for Bounce2 (millis)
             int ButtonDebounceInterval;
 
         private:
-            static const int EditModeTimeoutDefault  = 5000;
+            static const unsigned int EditModeTimeoutDefault  = 5000;
             static const int ButtonDebounceIntervalDefault  = 5;
 
         public:
             void load(int &offset) {
                 EEPROM.get(offset, EditModeTimeout);
-                offset += sizeof(int);
+                offset += sizeof(unsigned int);
 
                 EEPROM.get(offset, ButtonDebounceInterval);
                 offset += sizeof(int);
@@ -46,7 +69,7 @@ class Configuration {
 
             void save(int &offset) {
                 EEPROM.put(offset, EditModeTimeout);
-                offset += sizeof(int);
+                offset += sizeof(unsigned int);
 
                 EEPROM.put(offset, ButtonDebounceInterval);
                 offset += sizeof(int);
@@ -60,7 +83,7 @@ class Configuration {
             }
 
             size_t size() const {
-                return sizeof(int) + sizeof(int);
+                return sizeof(unsigned int) + sizeof(int);
             }
     };
 
@@ -369,7 +392,7 @@ class Configuration {
 
         private:
             char* loadString(int &offset) {
-                uint8_t strLen;
+                uint8_t strLen = 0;
                 EEPROM.get(offset, strLen);
                 offset += sizeof(uint8_t);
 
@@ -426,68 +449,77 @@ class Configuration {
     };
 
     private:
-        ControlConfiguration _controlConfiguration;
-        ClockFaceConfiguration _clockFaceConfiguration;
-        RtcTimeSourceConfiguration _rtcTimeSourceConfiguration;
-        NtpTimeSourceConfiguration _ntpTimeSourceConfiguration;
-        SystemConfiguration _systemConfiguration;
+        ControlConfiguration* _controlConfiguration;
+        ClockFaceConfiguration* _clockFaceConfiguration;
+        RtcTimeSourceConfiguration* _rtcTimeSourceConfiguration;
+        NtpTimeSourceConfiguration* _ntpTimeSourceConfiguration;
+        SystemConfiguration* _systemConfiguration;
+        RemoteControlConfiguration* _remoteControlConfiguration;
 
     public:
-        ControlConfiguration getControlConfiguration() {
+        ControlConfiguration* getControlConfiguration() {
             return _controlConfiguration;
         }
 
-        ClockFaceConfiguration getClockFaceConfiguration() {
+        ClockFaceConfiguration* getClockFaceConfiguration() {
             return _clockFaceConfiguration;
         }
 
-        RtcTimeSourceConfiguration getRtcTimeSourceConfiguration() {
+        RtcTimeSourceConfiguration* getRtcTimeSourceConfiguration() {
             return _rtcTimeSourceConfiguration;
         }
 
-        NtpTimeSourceConfiguration getNtpTimeSourceConfiguration() {
+        NtpTimeSourceConfiguration* getNtpTimeSourceConfiguration() {
             return _ntpTimeSourceConfiguration;
         }
 
-        SystemConfiguration getSystemConfiguration() {
+        SystemConfiguration* getSystemConfiguration() {
             return _systemConfiguration;
         }
 
+        RemoteControlConfiguration* getRemoteControlConfiguration() {
+            return _remoteControlConfiguration;
+        }
+
         void init() {
-            size_t totalSize = _controlConfiguration.size()
-                + _clockFaceConfiguration.size()
-                + _rtcTimeSourceConfiguration.size()
-                + _ntpTimeSourceConfiguration.size()
-                + _systemConfiguration.size();
+            size_t totalSize = _controlConfiguration->size()
+                + _clockFaceConfiguration->size()
+                + _rtcTimeSourceConfiguration->size()
+                + _ntpTimeSourceConfiguration->size()
+                + _systemConfiguration->size()
+                + _remoteControlConfiguration->size();
 
             EEPROM.begin(totalSize);
         }
 
         void load() {
             int offset = 0;
-            _controlConfiguration.load(offset);
-            _clockFaceConfiguration.load(offset);
-            _rtcTimeSourceConfiguration.load(offset);
-            _ntpTimeSourceConfiguration.load(offset);
-            _systemConfiguration.load(offset);
+            _controlConfiguration->load(offset);
+            _clockFaceConfiguration->load(offset);
+            _rtcTimeSourceConfiguration->load(offset);
+            _ntpTimeSourceConfiguration->load(offset);
+            _systemConfiguration->load(offset);
+            _remoteControlConfiguration->load(offset);
         }
 
         void save() {
             int offset = 0;
-            _controlConfiguration.save(offset);
-            _clockFaceConfiguration.save(offset);
-            _rtcTimeSourceConfiguration.save(offset);
-            _ntpTimeSourceConfiguration.save(offset);
-            _systemConfiguration.save(offset);
+            _controlConfiguration->save(offset);
+            _clockFaceConfiguration->save(offset);
+            _rtcTimeSourceConfiguration->save(offset);
+            _ntpTimeSourceConfiguration->save(offset);
+            _systemConfiguration->save(offset);
+            _remoteControlConfiguration->save(offset);
         }
 
         void loadDefaults() {
             int offset = 0;
-            _controlConfiguration.loadDefaults(offset);
-            _clockFaceConfiguration.loadDefaults(offset);
-            _rtcTimeSourceConfiguration.loadDefaults(offset);
-            _ntpTimeSourceConfiguration.loadDefaults(offset);
-            _systemConfiguration.loadDefaults(offset);
+            _controlConfiguration->loadDefaults(offset);
+            _clockFaceConfiguration->loadDefaults(offset);
+            _rtcTimeSourceConfiguration->loadDefaults(offset);
+            _ntpTimeSourceConfiguration->loadDefaults(offset);
+            _systemConfiguration->loadDefaults(offset);
+            _remoteControlConfiguration->loadDefaults(offset);
         }
 };
 
