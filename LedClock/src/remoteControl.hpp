@@ -29,17 +29,17 @@ class RemoteControl {
 
     private:
         Configuration* _configuration;
-        WiFiServer _server;
-        WiFiClient _client;
         TimeSource* _timeSource;
+        WiFiServer _server;
+        WiFiClient _client;        
 
         void(* resetFunc) (void) = 0;
 
     public:
         RemoteControl(
             TimeSource* timeSource,
-            Configuration* configuration):
-            _configuration(configuration), _server(Configuration::RemoteControlConfiguration::IncomingPort), _timeSource(timeSource) {
+            Configuration* configuration)
+            : _configuration(configuration), _timeSource(timeSource), _server(Configuration::RemoteControlConfiguration::IncomingPort) {
         }
 
         void init() {
@@ -280,14 +280,18 @@ class RemoteControl {
       
         int readInt() {
             int value = 0;
-            for (int i = 0; i < sizeof(int); i++)
-                value = _client.read() << (i * 8);
+            for (size_t i = 0; i < sizeof(int); i++)
+                value |= _client.read() << (i * 8);
+            
+            return value;
         }
       
         long readLong() {
             int value = 0;
-            for (int i = 0; i < sizeof(long); i++)
-                value = _client.read() << (i * 8);
+            for (size_t i = 0; i < sizeof(long); i++)
+                value |= _client.read() << (i * 8);
+
+            return value;
         }
 
         void writeString(const char* str) {

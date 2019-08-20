@@ -3,6 +3,7 @@
 #include <timeSource.h>
 #include <clockControl.hpp>
 #include <clockFace.hpp>
+#include <remoteControl.hpp>
 
 class Clock {
     private:
@@ -10,12 +11,13 @@ class Clock {
         TimeSource* _timeSource;
         ClockFace* _clockFace;
         ClockControl* _clockControl;
+        RemoteControl* _remoteControl;
 
         unsigned long _lastDebugTime;
 
     public:
-        Clock(Configuration* configuration, TimeSource* timeSource, ClockFace* clockFace, ClockControl* clockControl)
-            : _configuration(configuration), _timeSource(timeSource), _clockFace(clockFace), _clockControl(clockControl),  _lastDebugTime(0)
+        Clock(Configuration* configuration, TimeSource* timeSource, ClockFace* clockFace, ClockControl* clockControl, RemoteControl* remoteControl)
+            : _configuration(configuration), _timeSource(timeSource), _clockFace(clockFace), _clockControl(clockControl), _remoteControl(remoteControl), _lastDebugTime(0)
         {
         }
 
@@ -34,9 +36,15 @@ class Clock {
 
             _clockFace->init();
             _clockFace->selfCheck();
+
+            if(_remoteControl)
+                _remoteControl->init();
         }
 
         void update() {
+            if(_remoteControl)
+                _remoteControl->update();
+
             _timeSource->updateTime();
             if(_clockControl)
                 _clockControl->update();
